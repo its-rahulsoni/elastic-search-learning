@@ -1,0 +1,22 @@
+spring:
+#  This is NOT NEEDED now as we have created a separate configuration class for Elasticsearch client ....
+#  elasticsearch:
+#    uris: https://localhost:9200   # ✅ Correct property name
+#    username: elastic
+#    password: PEk9XgEl8Pwp-hijYzMU
+#    client:
+#      ssl:
+#        certificate-authorities: classpath:elastic-truststore.p12
+#        password: mypassword
+
+  jackson:
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+
+logging:
+  level:
+    org.springframework.data.elasticsearch: DEBUG
+    org.springframework.data.elasticsearch.client.elc: DEBUG
+    org.springframework.data.elasticsearch.core: DEBUG
+
