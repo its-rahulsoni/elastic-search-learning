@@ -2,6 +2,7 @@ package com.spring.elasticsearch.learning.service;
 
 import co.elastic.clients.json.JsonData;
 import com.spring.elasticsearch.learning.models.OrderDocument;
+import com.spring.elasticsearch.learning.repository.OrdersPaginationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,11 +18,157 @@ import co.elastic.clients.elasticsearch._types.aggregations.SumAggregation;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch._types.query_dsl.RangeQuery;
 
+import java.util.List;
+
 @Service
 public class OrdersPaginationService {
 
     @Autowired
     private ElasticsearchOperations operations;
+
+    @Autowired
+    private OrdersPaginationRepository repository;
+
+    /**
+     * This method saves the OrderDocument to the Elasticsearch index.
+     * It uses the repository's save method which handles both insert and update operations.
+     * If the document already exists (based on its ID), it will update the existing document.
+     * If it does not exist, it will insert a new document.
+     * @param order
+     * @return
+     */
+    public OrderDocument addOrder(OrderDocument order) {
+        return repository.save(order); // inserts into Elasticsearch index
+    }
+
+
+    /**
+     * 1️⃣ Term Query (Exact Match)
+     * Kibana DSL:
+     * {
+     *   "query": {
+     *     "term": {
+     *       "customer": "Rahul"
+     *     }
+     *   }
+     * }
+     *
+     * ✅ Use Case: Exact matching (keywords, IDs, enums).
+     * 🔑 Remember: .value(v -> v.stringValue(...)) is used for term queries.
+     */
+    public List<OrderDocument> getOrdersByCustomerUsingTermQuery(String customerName) {
+
+        // ✅ Build a native term query ....
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q.term(t -> t.field("customer").value(v -> v.stringValue(customerName))))
+                .build();
+
+        // ✅ Execute search ....
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        // ✅ Convert SearchHits -> List<OrderDocument> ....
+        return searchHits.stream()
+                .map(hit -> hit.getContent())
+                .toList();
+    }
+
+
+    /**
+     * 2️⃣ Match Query (Full-text Search)
+     * Kibana DSL:
+     * {
+     *   "query": {
+     *     "match": {
+     *       "status": "PAID"
+     *     }
+     *   }
+     * }
+     *
+     * ✅ Use Case: Full-text search (fields analyzed by ES analyzer).
+     * 🔑 Remember: .query(...) sets the text to match.
+     */
+    public List<OrderDocument> getOrdersByStatusUsingMatchQuery(String status) {
+
+        // ✅ Build a native term query ....
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q.match(m -> m.field("status").query(status)))
+                .build();
+
+        // ✅ Execute search ....
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        // ✅ Convert SearchHits -> List<OrderDocument> ....
+        return searchHits.stream()
+                .map(hit -> hit.getContent())
+                .toList();
+    }
+
+    /**
+     * 3️⃣ Range Query (Numbers/Dates)
+     * Kibana DSL:
+     * {
+     *   "query": {
+     *     "range": {
+     *       "total_amount": {
+     *         "gte": 100,
+     *         "lte": 600
+     *       }
+     *     }
+     *   }
+     * }
+     *
+     * ✅ Use Case: Filter documents by numeric range or date range.
+     * 🔑 Remember: Use JsonData.of(...) for numbers/dates to avoid type issues.
+     */
+    public List<OrderDocument> getOrdersUsingRangeQuery() {
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q.range(r -> r
+                        .field("total_amount")
+                        .gte(JsonData.of(100))
+                        .lte(JsonData.of(600))
+                        ))
+                        .build();
+
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        return searchHits.stream()
+                .map(hit -> hit.getContent())
+                .toList();
+    }
+
+
+    /**
+     * 4️⃣ Bool Query (Combine Queries)
+     * Kibana DSL:
+     * {
+     *   "query": {
+     *     "bool": {
+     *       "must": [
+     *         { "term": { "status": "PAID" } },
+     *         { "range": { "total_amount": { "gte": 300 } } }
+     *       ]
+     *     }
+     *   }
+     * }
+     *
+     * ✅ Use Case: Combine multiple conditions (must/should/must_not/filter).
+     * 🔑 Remember: .must(), .should(), .mustNot() correspond to Kibana bool clauses.
+     */
+    public List<OrderDocument> getOrdersByCombiningQueries() {
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q.bool(b -> b
+                        .must(m -> m.term(t -> t.field("status").value(v -> v.stringValue("PAID"))))
+                        .must(m -> m.range(r -> r.field("total_amount").gte(JsonData.of(300))))
+                        ))
+                        .build();
+
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        return searchHits.stream()
+                .map(hit -> hit.getContent())
+                .toList();
+
+    }
 
     /**
      * ✅ Get top N orders sorted by totalAmount descending.
