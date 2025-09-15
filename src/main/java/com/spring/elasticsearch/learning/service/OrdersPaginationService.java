@@ -185,11 +185,11 @@ public class OrdersPaginationService {
      * ✅ Use Case: Get top-N results sorted by a field.
      * 🔑 Remember: Use PageRequest.of(page, size) for pagination.
      */
-    public List<OrderDocument> getOrdersBySortAndPaginationQueries(String sortField, int page, int size, boolean desc) {
+    public List<OrderDocument> getOrdersBySortAndPaginationQueries() {
         NativeQuery query = NativeQuery.builder()
                 .withQuery(q -> q.matchAll(m -> m))
-                .withSort(Sort.by(Sort.Order.desc(sortField)))
-                .withPageable(PageRequest.of(page, size)) // page 0, size 5
+                .withSort(Sort.by(Sort.Order.desc("total_amount")))
+                .withPageable(PageRequest.of(0, 5)) // page 0, size 5
                 .build();
 
         SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
@@ -198,11 +198,6 @@ public class OrdersPaginationService {
                 .map(hit -> hit.getContent())
                 .toList();
     }
-
-
-
-
-
 
 
     /**
