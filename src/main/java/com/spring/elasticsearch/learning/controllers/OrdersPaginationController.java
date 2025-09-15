@@ -41,6 +41,13 @@ public class OrdersPaginationController {
         return orderService.getOrdersByCombiningQueries();
     }
 
+
+    @GetMapping("/sort-and-pagination")
+    public List<OrderDocument> getOrdersBySortAndPaginationQueries() {
+        return orderService.getOrdersBySortAndPaginationQueries();
+    }
+
+
     /* ----------------------------------------------------------------------------------------------- */
 
     @GetMapping("/top")

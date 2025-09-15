@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.client.elc.NativeQuery;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.repository.core.NamedQueries;
 import org.springframework.stereotype.Service;
 
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation;
@@ -169,6 +170,40 @@ public class OrdersPaginationService {
                 .toList();
 
     }
+
+
+    /**
+     * 5️⃣ Sort + Pagination
+     * Kibana DSL:
+     * {
+     *   "query": { "match_all": {} },
+     *   "sort": [{ "total_amount": "desc" }],
+     *   "size": 5,
+     *   "from": 0
+     * }
+     *
+     * ✅ Use Case: Get top-N results sorted by a field.
+     * 🔑 Remember: Use PageRequest.of(page, size) for pagination.
+     */
+    public List<OrderDocument> getOrdersBySortAndPaginationQueries(String sortField, int page, int size, boolean desc) {
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(q -> q.matchAll(m -> m))
+                .withSort(Sort.by(Sort.Order.desc(sortField)))
+                .withPageable(PageRequest.of(page, size)) // page 0, size 5
+                .build();
+
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        return searchHits.stream()
+                .map(hit -> hit.getContent())
+                .toList();
+    }
+
+
+
+
+
+
 
     /**
      * ✅ Get top N orders sorted by totalAmount descending.
