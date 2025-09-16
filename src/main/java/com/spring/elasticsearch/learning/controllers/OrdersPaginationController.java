@@ -1,6 +1,7 @@
 package com.spring.elasticsearch.learning.controllers;
 
 import com.spring.elasticsearch.learning.models.OrderDocument;
+import com.spring.elasticsearch.learning.service.OrderPaginationAggregations;
 import com.spring.elasticsearch.learning.service.OrdersPaginationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.SearchHits;
@@ -14,6 +15,9 @@ public class OrdersPaginationController {
 
     @Autowired
     private OrdersPaginationService orderService;
+
+    @Autowired
+    OrderPaginationAggregations orderPaginationAggregations;
 
     @PostMapping("/add")
     public OrderDocument createOrder(@RequestBody OrderDocument order) {
@@ -45,6 +49,13 @@ public class OrdersPaginationController {
     @GetMapping("/sort-and-pagination")
     public List<OrderDocument> getOrdersBySortAndPaginationQueries() {
         return orderService.getOrdersBySortAndPaginationQueries();
+    }
+
+    /* ----------------------------------------------------------------------------------------------- */
+
+    @GetMapping("/aggs-total-orders-count")
+    public long getOrdersCountByAggregationQueries() {
+        return orderPaginationAggregations.getTotalOrdersCount();
     }
 
 

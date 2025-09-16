@@ -4,6 +4,8 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import co.elastic.clients.json.jackson.JacksonJsonpMapper;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -12,6 +14,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.client.elc.ElasticsearchClients;
 import org.springframework.data.elasticsearch.client.elc.ElasticsearchTemplate;
 
 import javax.net.ssl.SSLContext;
@@ -61,6 +64,30 @@ public class ElasticsearchConfig {
         return new ElasticsearchTemplate(client);
 
     }
+
+
+    /*
+     * NOT NEEDED.
+     * Refer to ConfigDetails.md file for further details ....
+     **/
+    /*
+    @Bean
+    public RestClient elasticsearchRestClient() {
+        return RestClient.builder(HttpHost.create("localhost:9200"))
+                .setHttpClientConfigCallback(httpClientBuilder -> {
+                    httpClientBuilder.addInterceptorLast((HttpResponseInterceptor) (response, context) ->
+                            response.addHeader("X-Elastic-Product", "Elasticsearch"));
+                    return httpClientBuilder;
+                })
+                .build();
+    }
+
+    @Bean
+    public ElasticsearchClient elasticsearchClient(RestClient restClient) {
+        return ElasticsearchClients.createImperative(restClient);
+    }
+    */
+
 }
 
 
