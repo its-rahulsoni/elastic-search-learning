@@ -87,7 +87,10 @@ public class OrdersPaginationController {
         return orderPaginationAggregations.getRevenuePerCustomer();
     }
 
-
+    @GetMapping("/aggs-revenue-from-paid-orders")
+    public double getTotalRevenueFromPaidOrders() {
+        return orderPaginationAggregations.getTotalRevenueFromPaidOrders();
+    }
 
 
 

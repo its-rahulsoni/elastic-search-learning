@@ -1,6 +1,7 @@
 package com.spring.elasticsearch.learning.service;
 
 import co.elastic.clients.elasticsearch._types.aggregations.*;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import com.spring.elasticsearch.learning.models.CustomerRevenueResponse;
 import com.spring.elasticsearch.learning.models.MinMax;
 import com.spring.elasticsearch.learning.models.OrderDocument;
@@ -432,6 +433,63 @@ public class OrderPaginationAggregations {
         }
 
         return result;
+    }
+
+
+    /**
+     * GET orders_pagination/_search
+     * {
+     *   "size": 0,
+     *   "query": {
+     *     "term": { "status": "PAID" }
+     *   },
+     *   "aggs": {
+     *     "paid_revenue": {
+     *       "sum": {
+     *         "field": "total_amount"
+     *       }
+     *     }
+     *   }
+     * }
+     */
+    public double getTotalRevenueFromPaidOrders() {
+        // ✅ Step 1: Build the term query for status = "PAID" ....
+        Query statusFilterQuery = Query.of(q -> q
+                .term(t -> t
+                        .field("status")
+                        .value(v -> v.stringValue("PAID"))
+                )
+        );
+
+        // ✅ Step 2: Build the sum aggregation
+        Aggregation paidRevenueAgg = Aggregation.of(a -> a
+                .sum(s -> s
+                        .field("total_amount")
+                )
+        );
+
+        // ✅ Step 3: Build the NativeQuery with both query + aggregation
+        NativeQuery query = NativeQuery.builder()
+                .withQuery(statusFilterQuery)
+                .withAggregation("paid_revenue", paidRevenueAgg)
+                .withMaxResults(0) // IMP: we don't want document hits, only aggregation result ....
+                .build();
+
+        // ✅ Step 4: Execute search
+        SearchHits<OrderDocument> searchHits = operations.search(query, OrderDocument.class);
+
+        // ✅ Step 5: Extract aggregations safely
+        ElasticsearchAggregations springAggs = (ElasticsearchAggregations) searchHits.getAggregations();
+        if (springAggs == null) return 0.0;
+
+        ElasticsearchAggregation aggWrapper = springAggs.aggregationsAsMap().get("paid_revenue");
+        if (aggWrapper == null) return 0.0;
+
+        Aggregate aggObject = aggWrapper.aggregation().getAggregate();
+        if (!aggObject.isSum()) return 0.0;
+
+        // ✅ Step 6: Extract sum value
+        return aggObject.sum().value();
     }
 
 }
