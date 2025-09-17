@@ -1,5 +1,7 @@
 package com.spring.elasticsearch.learning.controllers;
 
+import com.spring.elasticsearch.learning.models.CustomerRevenueResponse;
+import com.spring.elasticsearch.learning.models.MinMax;
 import com.spring.elasticsearch.learning.models.OrderDocument;
 import com.spring.elasticsearch.learning.service.OrderPaginationAggregations;
 import com.spring.elasticsearch.learning.service.OrdersPaginationService;
@@ -8,6 +10,7 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/orders")
@@ -58,6 +61,37 @@ public class OrdersPaginationController {
         return orderPaginationAggregations.getTotalOrdersCount();
     }
 
+    @GetMapping("/aggs-total-revenue")
+    public double getRevenueByAggregationQueries() {
+        return orderPaginationAggregations.getTotalRevenueFromOrders();
+    }
+
+    @GetMapping("/aggs-total-avg")
+    public double getAverageByAggregationQueries() {
+        return orderPaginationAggregations.getTotalAverageFromOrders();
+    }
+
+    @GetMapping("/aggs-min-max")
+    public MinMax getMinAndMaxAmountFromOrders() {
+        return orderPaginationAggregations.getMinAndMaxAmountFromOrders();
+    }
+
+    @GetMapping("/aggs-group-by-status")
+    public Map<String, Long> getOrdersGroupedByStatus() {
+        return orderPaginationAggregations.getOrdersGroupedByStatus();
+    }
+
+
+    @GetMapping("/aggs-revenue-by-customer")
+    public List<CustomerRevenueResponse> getRevenuePerCustomer() {
+        return orderPaginationAggregations.getRevenuePerCustomer();
+    }
+
+
+
+
+
+
 
     /* ----------------------------------------------------------------------------------------------- */
 
@@ -73,7 +107,7 @@ public class OrdersPaginationController {
     }
 
     @GetMapping("/revenue")
-    public List<OrderDocument> getRevenuePerCustomer() {
+    public List<OrderDocument> getRevenuePerCustomer2() {
         SearchHits<OrderDocument> searchHits = orderService.getRevenuePerCustomer();
 
         List<OrderDocument> orderDocumentList = searchHits.stream()
