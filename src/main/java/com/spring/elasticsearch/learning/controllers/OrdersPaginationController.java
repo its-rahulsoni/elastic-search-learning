@@ -1,8 +1,6 @@
 package com.spring.elasticsearch.learning.controllers;
 
-import com.spring.elasticsearch.learning.models.CustomerRevenueResponse;
-import com.spring.elasticsearch.learning.models.MinMax;
-import com.spring.elasticsearch.learning.models.OrderDocument;
+import com.spring.elasticsearch.learning.models.*;
 import com.spring.elasticsearch.learning.service.OrderPaginationAggregations;
 import com.spring.elasticsearch.learning.service.OrdersPaginationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,9 +90,30 @@ public class OrdersPaginationController {
         return orderPaginationAggregations.getTotalRevenueFromPaidOrders();
     }
 
+    @GetMapping("/aggs-filter-multiple-criteria")
+    public RevenueStatsResponse getPaidRevenueStats() {
+        return orderPaginationAggregations.getPaidRevenueStats();
+    }
 
+    @GetMapping("/aggs-filter-by-status-group-by-customer-nested-sum-aggs")
+    public List<CustomerRevenue> getTopCustomersByRevenue() {
+        return orderPaginationAggregations.getTopCustomersByRevenue();
+    }
 
+    @GetMapping("/aggs-customer-order-stats-last-30-days")
+    public Map<String, CustomerOrderStats> getCustomerOrderStatsLast30Days() {
+        return orderPaginationAggregations.getCustomerOrderStatsLast30Days();
+    }
 
+    @GetMapping("/aggs-daily-sales-for-customer")
+    public Map<String, DailySalesStats> getDailySalesForCustomer() {
+        return orderPaginationAggregations.getDailySalesForCustomer("Alice");
+    }
+
+    @GetMapping("/aggs-category-stats-last-30-days")
+    public List<CategoryStats> getCategoryStatsLast30Days() {
+        return orderPaginationAggregations.getCategoryStatsLast30Days();
+    }
 
     /* ----------------------------------------------------------------------------------------------- */
 
